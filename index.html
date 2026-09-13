@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Hambo's Time Fighter</title>
+<style>
+  html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050711;font-family:monospace;touch-action:none}
+  canvas{display:block;width:100%;height:100%;image-rendering:pixelated}
+  #hint{position:fixed;left:50%;bottom:8px;transform:translateX(-50%);color:#fff8;font-size:12px;text-align:center;pointer-events:none}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas><div id="hint"></div>
+<script>
+"use strict";
+const c=document.getElementById("game"),ctx=c.getContext("2d");
+ctx.imageSmoothingEnabled=false;
+// The game is rendered at a deliberately low resolution and scaled up.
+// This makes every pixel in the game genuinely chunky/pixel-art.
+const W=320,H=180;
+function resize(){
+  c.width=W;c.height=H;
+  c.style.width=innerWidth+"px";c.style.height=innerHeight+"px";
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.imageSmoothingEnabled=false;
+}
+addEventListener("resize",resize); resize();
+
+const keys={}; addEventListener("keydown",e=>{keys[e.key.toLowerCase()]=true;if([" ","arrowup","arrowdown","arrowleft","arrowright"].includes(e.key.toLowerCase()))e.preventDefault();});
+addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
+
+let touch={x:0,y:0,fire:false,active:false};
+function pointer(e){
+ const p=e.touches?e.touches[0]:e;
+ const r=c.getBoundingClientRect();
+ touch.x=(p.clientX-r.left)*W/r.width;
+ touch.y=(p.clientY-r.top)*H/r.height;
+ touch.active=true;
+}
+addEventListener("pointerdown",e=>{initAudio();pointer(e);touch.fire=true;if(state!=="play")start();});
+addEventListener("pointermove",e=>{if(touch.active)pointer(e)});
+addEventListener("pointerup",()=>{touch.active=false;touch.fire=false});
+addEventListener("touchstart",e=>{initAudio();pointer(e);touch.fire=true;if(state!=="play")start()},{passive:false});
+addEventListener("touchmove",e=>{pointer(e);e.preventDefault()},{passive:false});
+addEventListener("touchend",()=>{touch.active=false;touch.fire=false});
+
+const stars=Array.from({length:90},()=>({x:Math.random(),y:Math.random(),s:.5+Math.random()*2}));
+let player,enemies,shots,enemyShots,parts,score,wave,lives,state,shake,last=0,spawnTimer;
+function start(){
+ initAudio();sfxStart();player={x:W/2,y:H*.72,r:15,angle:-Math.PI/2,speed:260,cool:0,inv:1};
+ enemies=[];shots=[];enemyShots=[];parts=[];score=0;wave=1;lives=3;shake=0;state="play";spawnTimer=.2;
+}
+function end(){state="gameover";for(let i=0;i<35;i++)burst(player.x,player.y,"#fff")}
+function burst(x,y,col="#ffcf33"){
+ for(let i=0;i<10;i++){let a=Math.random()*Math.PI*2,s=40+Math.random()*180;parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:.35+Math.random()*.45,col})}
+}
+let audioCtx=null;
+function initAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==="suspended")audioCtx.resume()}
+function tone(f,d,t="square",v=.045,sl=0){if(!audioCtx)return;let o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=t;o.frequency.setValueAtTime(f,audioCtx.currentTime);if(sl)o.frequency.linearRampToValueAtTime(Math.max(40,f+sl),audioCtx.currentTime+d);g.gain.setValueAtTime(v,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+d);o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+d)}
+function sfxShoot(){tone(620,.055,"square",.035,-280)}
+function sfxHit(){tone(180,.09,"square",.06,-100);setTimeout(()=>tone(90,.08,"square",.04,-40),25)}
+function sfxEnemyShoot(){tone(260,.08,"sawtooth",.025,120)}
+function sfxCrash(){tone(110,.18,"square",.065,-80);setTimeout(()=>tone(65,.16,"square",.05,-35),55)}
+function sfxStart(){tone(330,.08,"square",.04,120);setTimeout(()=>tone(494,.08,"square",.04,100),85);setTimeout(()=>tone(659,.12,"square",.045),170)}
+function shoot(){
+ if(player.cool>0)return;
+ player.cool=.18;
+ const dx=Math.cos(player.angle),dy=Math.sin(player.angle);
+ shots.push({x:player.x+dx*18,y:player.y+dy*18,vx:dx*650,vy:dy*650,life:1});sfxShoot();
+}
+function enemy(){
+ if(enemies.length>=5)return;
+ const side=Math.floor(Math.random()*4), pad=35;
+ let x,y;
+ if(side===0){x=-pad;y=Math.random()*H*.65}
+ if(side===1){x=W+pad;y=Math.random()*H*.65}
+ if(side===2){x=Math.random()*W;y=-pad}
+ if(side===3){x=Math.random()*W;y=H+pad}
+ const type=Math.random()<.2+wave*.015?"ace":"fighter";
+ enemies.push({x,y,r:type==="ace"?15:12,type,hp:type==="ace"?2:1,
+   speed:(type==="ace"?100:75)+wave*4,turn:0,shoot:.7+Math.random()*1.5});
+}
+function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+function update(dt){
+ for(const s of stars){s.y+=dt*(.02+s.s*.02);if(s.y>1)s.y=0}
+ if(state!=="play"){for(const p of parts){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.98;p.vy*=.98;p.life-=dt}parts=parts.filter(p=>p.life>0);return}
+ player.cool-=dt;player.inv-=dt;
+ let ax=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0);
+ let ay=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);
+ if(touch.active){
+   ax=Math.max(-1,Math.min(1,(touch.x-player.x)/100));
+   ay=Math.max(-1,Math.min(1,(touch.y-player.y)/100));
+ }
+ if(ax||ay){
+   let m=Math.hypot(ax,ay);ax/=m;ay/=m;
+   player.x+=ax*player.speed*dt;player.y+=ay*player.speed*dt;
+   player.angle=Math.atan2(ay,ax);
+ }
+ player.x=Math.max(22,Math.min(W-22,player.x));player.y=Math.max(55,Math.min(H-22,player.y));
+ if(keys[" "]||keys.f||touch.fire)shoot();
+
+ spawnTimer-=dt;
+ if(spawnTimer<=0){if(enemies.length<5)enemy();spawnTimer=Math.max(.28,1.05-wave*.045);if(score>0&&score%120===0)wave=Math.min(20,wave+1)}
+
+ for(const s of shots){s.x+=s.vx*dt;s.y+=s.vy*dt;s.life-=dt}
+ shots=shots.filter(s=>s.life>0&&s.x>-20&&s.x<W+20&&s.y>-20&&s.y<H+20);
+
+ for(const e of enemies){
+   const a=Math.atan2(player.y-e.y,player.x-e.x);
+   let turn=Math.atan2(Math.sin(a-e.turn),Math.cos(a-e.turn));
+   e.turn+=Math.max(-2.4*dt,Math.min(2.4*dt,turn));
+   e.x+=Math.cos(e.turn)*e.speed*dt;e.y+=Math.sin(e.turn)*e.speed*dt;
+   e.shoot-=dt;
+   if(e.shoot<=0){e.shoot=1.2+Math.random()*1.8;
+     const dx=Math.cos(e.turn),dy=Math.sin(e.turn);
+     enemyShots.push({x:e.x,y:e.y,vx:dx*(180+wave*5),vy:dy*(180+wave*5),life:3});sfxEnemyShoot();
+   }
+ }
+ enemyShots=enemyShots.filter(s=>{s.x+=s.vx*dt;s.y+=s.vy*dt;s.life-=dt;return s.life>0&&s.x>-30&&s.x<W+30&&s.y>-30&&s.y<H+30});
+
+ for(let i=enemies.length-1;i>=0;i--)for(let j=shots.length-1;j>=0;j--){
+   if(dist(enemies[i],shots[j])<enemies[i].r+5){
+     enemies[i].hp--;shots.splice(j,1);sfxHit();burst(enemies[i].x,enemies[i].y,enemies[i].type==="ace"?"#ff4d6d":"#ffd43b");
+     if(enemies[i].hp<=0){score+=enemies[i].type==="ace"?30:10;enemies.splice(i,1)}
+     break;
+   }
+ }
+ if(player.inv<=0){
+   for(const s of enemyShots)if(Math.hypot(player.x-s.x,player.y-s.y)<player.r+5){s.life=0;hit();break}
+   for(const e of enemies)if(Math.hypot(player.x-e.x,player.y-e.y)<player.r+e.r*.7){e.x=-999;hit();break}
+ }
+ enemyShots=enemyShots.filter(s=>s.life>0);
+ enemies=enemies.filter(e=>e.x>-80&&e.x<W+80&&e.y>-80&&e.y<H+80);
+ for(const p of parts){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.97;p.vy*=.97;p.life-=dt}
+ parts=parts.filter(p=>p.life>0);
+ shake=Math.max(0,shake-dt*18);
+}
+function hit(){
+ sfxCrash();lives--;shake=10;burst(player.x,player.y,"#ff3344");player.x=W/2;player.y=H*.72;player.inv=1.6;
+ if(lives<=0)end();
+}
+function plane(x,y,a,scale=1,col="#55d6ff"){
+ ctx.save();
+ x=Math.round(x);y=Math.round(y);
+ ctx.translate(x,y);ctx.rotate(a);ctx.scale(scale,scale);
+ // 16-bit style fighter sprite: hard-edged blocks, no curves.
+ ctx.fillStyle="#173b67";
+ ctx.fillRect(-4,-16,8,30);
+ ctx.fillStyle=col;
+ ctx.fillRect(-3,-15,6,22);
+ ctx.fillRect(-8,-9,16,6);
+ ctx.fillRect(-17,-4,34,5);
+ ctx.fillRect(-12,5,24,4);
+ ctx.fillStyle="#d9f4ff";
+ ctx.fillRect(-2,-11,4,6);
+ ctx.fillStyle="#173b67";
+ ctx.fillRect(-2,7,4,9);
+ ctx.fillStyle="#ffd447";
+ ctx.fillRect(-2,-17,4,3);
+ ctx.restore();
+}
+function draw(){
+ ctx.save();
+ if(shake){ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake)}
+ ctx.fillStyle="#42bff5";ctx.fillRect(0,0,W,H);
+ // Pixel-art clouds
+ function cloud(x,y,z){
+   ctx.fillStyle="#ffffff";
+   ctx.fillRect(x,y+10*z,54*z,12*z);
+   ctx.fillRect(x+8*z,y+4*z,40*z,18*z);
+   ctx.fillRect(x+18*z,y,22*z,24*z);
+   ctx.fillStyle="#e6f8ff";ctx.fillRect(x+4*z,y+18*z,46*z,7*z);
+ }
+ cloud(W*.12,H*.16,.8);cloud(W*.68,H*.28,1.05);
+ cloud(W*.42,H*.08,.62);cloud(W*.84,H*.58,.72);
+ if(state==="play"){
+   for(const s of shots){ctx.fillStyle="#fff3a3";ctx.fillRect(s.x-2,s.y-6,4,12)}
+   for(const s of enemyShots){ctx.fillStyle="#ff5577";ctx.fillRect(s.x-3,s.y-3,6,6)}
+   for(const e of enemies)plane(e.x,e.y,e.turn, e.type==="ace"?1.05:.82,e.type==="ace"?"#ff5277":"#ff9f43");
+   if(player.inv<=0||Math.floor(player.inv*12)%2)plane(player.x,player.y,player.angle);
+   for(const p of parts){ctx.globalAlpha=Math.max(0,p.life);ctx.fillStyle=p.col;ctx.fillRect(p.x-2,p.y-2,4,4);ctx.globalAlpha=1}
+   ctx.fillStyle="#fff";ctx.font="bold 18px monospace";ctx.textAlign="left";ctx.fillText("SCORE "+score,15,28);
+   ctx.textAlign="right";ctx.fillText("WAVE "+wave+"  ENEMIES "+enemies.length+"/5  ♥".repeat(lives),W-15,28);
+   ctx.font="12px monospace";ctx.textAlign="center";ctx.fillStyle="#ffffff99";
+   if(!touch.active)ctx.fillText("WASD / ARROWS • SPACE / F FIRE • TOUCH & DRAG",W/2,H-12);
+ }else{
+   ctx.textAlign="center";ctx.fillStyle="#fff";ctx.font="bold 38px monospace";ctx.fillText("HAMBO'S",W/2,H*.34);
+   ctx.fillStyle="#55d6ff";ctx.fillText("TIME FIGHTER",W/2,H*.34+46);
+   ctx.fillStyle="#ffcf33";ctx.font="bold 18px monospace";
+   ctx.fillText(state==="title"?"16-BIT AIR COMBAT":"GAME OVER",W/2,H*.34+90);
+   ctx.fillStyle="#fff";ctx.font="16px monospace";
+   if(state==="gameover")ctx.fillText("SCORE "+score+"   WAVE "+wave,W/2,H*.34+125);
+   ctx.fillStyle="#fff";ctx.font="bold 18px monospace";ctx.fillText("TAP / CLICK TO START",W/2,H*.68);
+   ctx.font="13px monospace";ctx.fillStyle="#ffffffaa";ctx.fillText("Desktop: WASD or arrows + SPACE",W/2,H*.68+30);ctx.fillText("Mobile: drag to fly, hold to fire",W/2,H*.68+50);
+ }
+ ctx.restore();
+}
+state="title"; player={x:W/2,y:H*.7};enemies=[];shots=[];enemyShots=[];parts=[];score=0;wave=1;lives=3;shake=0;
+function loop(t){let dt=Math.min(.033,(t-last)/1000||.016);last=t;update(dt);draw();requestAnimationFrame(loop)}requestAnimationFrame(loop);
+</script>
+</body>
+</html>
