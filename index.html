@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#061b52">
+<title>Hambo's Games</title>
+<style>
+:root{--bg:#03143f;--panel:#061d55;--panel2:#082866;--blue:#087cff;--cyan:#22b7ff;--red:#ff3045;--white:#f7fbff;--muted:#b8d8ff}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--white);font-family:Arial,sans-serif}
+body{background:linear-gradient(180deg,#04164a,#061e59 45%,#03143d);min-height:100vh}
+button{font:inherit}
+.pixel{image-rendering:pixelated}
+.topbar{position:sticky;top:0;z-index:20;background:#031440f5;border-bottom:3px solid #1269df}
+.nav{max-width:1200px;margin:auto;display:flex;justify-content:center;gap:8px;padding:8px;flex-wrap:wrap}
+.nav button{border:0;border-bottom:4px solid transparent;background:transparent;color:#fff;font-weight:900;letter-spacing:1px;padding:12px 18px;cursor:pointer}
+.nav button.active,.nav button:hover{border-color:var(--red)}
+.logo-wrap{max-width:1200px;margin:30px auto 42px;padding:0 18px}
+.logo{max-width:760px;margin:auto;background:#d7d7da;color:var(--red);border:8px solid #1f1f1f;outline:6px solid var(--red);box-shadow:0 0 0 12px #1f1f1f,0 16px 35px #0009;text-align:center;padding:25px 15px;font-family:"Courier New",monospace;font-weight:1000;letter-spacing:3px;font-size:clamp(35px,7vw,76px);line-height:.9}
+.logo span{display:block}
+.page{max-width:1200px;margin:auto;padding:0 18px 50px}
+.hidden{display:none!important}
+.section-title{display:flex;align-items:center;gap:18px;margin:28px 0 18px;font-family:"Courier New",monospace;font-weight:1000;font-size:clamp(24px,4vw,38px)}
+.section-title:before,.section-title:after{content:"";height:5px;background:var(--red);flex:1}
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:22px;background:linear-gradient(130deg,#06194c,#0a327e);border:3px solid var(--blue);box-shadow:0 0 0 3px #02123a;padding:22px;border-radius:10px}
+.hero h1{font-family:"Courier New",monospace;font-size:clamp(28px,5vw,50px);margin:5px 0 12px}
+.hero p{color:var(--muted);font-size:18px;line-height:1.5}
+.hero-art{min-height:240px;border:3px solid var(--cyan);background:#168fe5;overflow:hidden}
+.hero-art canvas{width:100%;height:100%;display:block;image-rendering:pixelated}
+.cta,.play{background:var(--red);border:2px solid #ff6978;color:#fff;font-weight:1000;cursor:pointer;padding:12px 18px;border-radius:5px;box-shadow:0 4px 0 #971526}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.card{background:linear-gradient(145deg,#06194b,#082965);border:3px solid #075dcc;box-shadow:0 0 0 2px #021238;padding:10px;border-radius:9px}
+.thumb{aspect-ratio:16/10;border:3px solid #168fff;background:#0b3478;margin-bottom:10px;overflow:hidden}
+.thumb canvas{width:100%;height:100%;display:block;image-rendering:pixelated}
+.card h3{font-family:"Courier New",monospace;margin:7px 0;font-size:20px}
+.card p{color:#c4ddff;line-height:1.35;min-height:42px;margin:6px 0 12px}
+.badge{display:inline-block;border:1px solid #49b6ff;color:#9bd9ff;border-radius:20px;padding:4px 7px;font-size:10px;font-weight:900}
+.card .play{width:100%}
+.about{max-width:850px;margin:auto;background:#061b52;border:3px solid var(--blue);padding:30px;border-radius:10px;font-size:20px;line-height:1.6;color:#d6e9ff}
+.game-panel{background:#04184b;border:3px solid #168fff;border-radius:10px;padding:16px;box-shadow:0 0 0 3px #021238}
+.game-head{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}
+.game-head h1{font-family:"Courier New",monospace;margin:6px 0}
+.game-head p{color:var(--muted);margin:0}
+.back{background:#0a347d;color:#fff;border:2px solid #168fff;border-radius:5px;padding:10px 15px;cursor:pointer;font-weight:900}
+.screen-wrap{position:relative;max-width:960px;margin:18px auto 12px}
+#gameCanvas{width:100%;display:block;background:#000;border:5px solid #082c72;box-shadow:0 0 0 2px #168fff;image-rendering:pixelated}
+.hud{position:absolute;left:12px;right:12px;top:10px;display:flex;justify-content:space-between;gap:8px;pointer-events:none;font-family:"Courier New",monospace;font-weight:900;text-shadow:2px 2px #000;flex-wrap:wrap}
+.hud span{background:#06194dcc;border:2px solid #55bfff;padding:5px 8px}
+.control-label{text-align:center;font-family:"Courier New",monospace;font-weight:900;margin:15px 0 8px}
+.controls{display:flex;justify-content:center;align-items:center;gap:9px;flex-wrap:wrap}
+.controls button{min-width:62px;background:#0a347d;color:#fff;border:3px solid #168fff;border-radius:8px;padding:10px 14px;cursor:pointer;font-weight:1000;box-shadow:0 3px 0 #021238}
+.controls button:active{transform:translateY(2px);box-shadow:0 1px 0 #021238}
+.savebox{margin-top:15px;background:#06245e;border:2px solid #0d64c9;border-radius:6px;padding:11px;color:#c9e3ff;text-align:center}
+.footer{border-top:3px solid #1269df;text-align:center;color:#8fcaff;padding:25px}
+@media(max-width:950px){.grid{grid-template-columns:repeat(2,1fr)}.hero{grid-template-columns:1fr}}
+@media(max-width:560px){.grid{grid-template-columns:1fr}.nav button{padding:9px 8px;font-size:11px}.logo{font-size:38px}.page{padding-left:10px;padding-right:10px}}
+</style>
+</head>
+<body>
+<header class="topbar"><nav class="nav">
+<button data-page="home">HOME</button><button data-page="games">GAMES</button><button data-page="new">NEW GAMES</button><button data-page="about">ABOUT</button>
+</nav></header>
+
+<div class="logo-wrap"><div class="logo"><span>HAMBO'S</span><span>GAMES!</span></div></div>
+
+<main id="home" class="page">
+<section class="hero"><div><span class="badge">RETRO GAME PORTAL</span><h1>Small Games. Big Adventures.</h1><p>Welcome to Hambo's Games! Explore a growing collection of original pixel-art games, from quick arcade challenges to huge adventures.</p><button class="cta" data-page="games">VIEW ALL GAMES &gt;</button></div><div class="hero-art"><canvas id="heroCanvas" width="640" height="320"></canvas></div></section>
+<h2 class="section-title">FEATURED GAMES</h2><div id="featured" class="grid"></div>
+</main>
+
+<main id="games" class="page hidden"><h2 class="section-title">GAMES</h2><div id="allGames" class="grid"></div></main>
+
+<main id="new" class="page hidden"><h2 class="section-title">NEW GAMES</h2><div class="about"><h1>Coming Soon!</h1><p>New games will appear here as Hambo's Games grows. More games will be added in future updates.</p></div></main>
+
+<main id="about" class="page hidden"><h2 class="section-title">ABOUT</h2><div class="about"><h1>About Hambo's Games</h1><p>Made by a kid who loves video games and wanted to make some too. There are many games available with more to come in the future!</p></div></main>
+
+<main id="play" class="page hidden">
+<section class="game-panel">
+<div class="game-head"><div><span id="type" class="badge"></span><h1 id="title"></h1><p id="desc"></p></div><button class="back" id="back">BACK TO GAMES</button></div>
+<div class="screen-wrap">
+<canvas id="gameCanvas" width="960" height="540"></canvas>
+<div class="hud"><span id="hudLeft">SCORE 000000</span><span id="hudRight">READY</span></div>
+</div>
+<div class="control-label">ON-SCREEN CONTROLS</div>
+<div class="controls" id="controls"></div>
+<div class="savebox" id="save">Progress saves automatically in this browser.</div>
+</section>
+</main>
+
+<footer class="footer">© 2026 Hambo's Games &nbsp;|&nbsp; Play. Explore. Have Fun!</footer>
+
+<script>
+const games=[
+{id:"sky",name:"Sky Ace",type:"ARCADE SHOOTER",desc:"Fly, shoot, and survive waves of enemy planes."},
+{id:"space",name:"Space Blaster",type:"SPACE SHOOTER",desc:"Defend the galaxy from enemy ships and asteroids."},
+{id:"frog",name:"Frog Hop",type:"ARCADE",desc:"Cross roads and rivers without getting hit."},
+{id:"robot",name:"Robot Rampage",type:"ACTION",desc:"Battle enemy robots through a pixel city."},
+{id:"snow",name:"Snow Rush",type:"RACING / ENDLESS",desc:"Race downhill while dodging obstacles."},
+{id:"sandbox",name:"Sand Box",type:"BIG GAME / ADVENTURE",desc:"Explore. Fight. Build. A huge 8-bit world."},
+{id:"symmetry",name:"Symmetry",type:"RELAXING ART",desc:"Draw, play with sand, and make satisfying patterns."},
+{id:"dungeon",name:"Dungeon Dive",type:"ADVENTURE",desc:"Explore dungeons, find treasure, and survive monsters."},
+{id:"turbo",name:"Turbo Tracks",type:"RACING",desc:"Race, boost, and chase your best time."},
+{id:"bass",name:"Big Bass Fishing",type:"BIG GAME / FISHING",desc:"Explore the ocean, catch fish, upgrade gear, and fill your Fish Collection."}
+];
+
+const $=s=>document.querySelector(s), canvas=$("#gameCanvas"), ctx=canvas.getContext("2d");
+ctx.imageSmoothingEnabled=false;
+let current=null,keys={},state={score:0,coins:0,fish:0,collection:0,x:480,y:400};
+
+window.addEventListener("keydown",e=>{keys[e.key.toLowerCase()]=true;if(["arrowup","arrowdown","arrowleft","arrowright"," "].includes(e.key.toLowerCase()))e.preventDefault()});
+window.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
+
+function nav(page){document.querySelectorAll("main.page").forEach(x=>x.classList.add("hidden"));$("#"+page).classList.remove("hidden");document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===page));window.scrollTo(0,0)}
+document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>nav(b.dataset.page));
+
+function saveData(){if(!current)return;localStorage.setItem("hambos_"+current,JSON.stringify({score:state.score,coins:state.coins,fish:state.fish,collection:state.collection}))}
+function loadData(id){try{return Object.assign({score:0,coins:0,fish:0,collection:0},JSON.parse(localStorage.getItem("hambos_"+id)||"{}"))}catch(e){return {score:0,coins:0,fish:0,collection:0}}}
+
+function card(g){return `<article class="card"><div class="thumb"><canvas width="320" height="200" data-art="${g.id}"></canvas></div><span class="badge">${g.type}</span><h3>${g.name}</h3><p>${g.desc}</p><button class="play" onclick="launch('${g.id}')">PLAY &gt;</button></article>`}
+$("#allGames").innerHTML=games.map(card).join("");
+$("#featured").innerHTML=[games[0],games[1],games[5],games[9]].map(card).join("");
+
+function px(c,x,y,w,h,col){c.fillStyle=col;c.fillRect(x,y,w,h)}
+function scene(c,id,w,h){
+c.clearRect(0,0,w,h);
+if(id==="sky"){px(c,0,0,w,h,"#28a9ef");for(let i=0;i<5;i++){px(c,20+i*70,30+(i%2)*45,55,10,"#fff");px(c,35+i*70,20+(i%2)*45,28,20,"#fff")}px(c,0,h-35,w,35,"#79d6ff");plane(c,w*.48,h*.65,"#fff","#111");for(let i=0;i<4;i++)plane(c,55+i*75,55+i%2*65,"#41a941","#173b18")}
+else if(id==="space"){px(c,0,0,w,h,"#050a2d");for(let i=0;i<30;i++)px(c,(i*83)%w,(i*47)%h,2,2,"#fff");ship(c,w*.5,h*.75,"#fff","#d33");for(let i=0;i<5;i++)ship(c,45+i*55,45+(i%2)*45,"#44cc77","#172d55")}
+else if(id==="frog"){px(c,0,0,w,h,"#72cfff");px(c,0,h*.22,w,50,"#3b3b3b");px(c,0,h*.55,w,55,"#2589c6");px(c,0,h*.84,w,h*.16,"#54a53d");for(let x=20;x<w;x+=75){px(c,x,h*.25,35,5,"#fff");px(c,x+25,h*.25+35,35,5,"#fff");}frog(c,w*.5,h*.82,"#48c848","#153d16")}
+else if(id==="robot"){px(c,0,0,w,h,"#1a1d4c");for(let x=0;x<w;x+=50)px(c,x,55+(x%3)*15,35,120,"#272b63");px(c,0,h-70,w,70,"#31343c");robot(c,w*.3,h-105,"#45a9ff");robot(c,w*.7,h-105,"#ff4b4b")}
+else if(id==="snow"){px(c,0,0,w,h,"#9edfff");px(c,0,h*.3,w,h*.7,"#fff");for(let x=20;x<w;x+=70){px(c,x,h*.25,15,80,"#2f7a3d");px(c,x-12,h*.35,40,12,"#2f7a3d")}boarder(c,w*.5,h*.67,"#e43d44")}
+else if(id==="sandbox"){px(c,0,0,w,h,"#6bcfff");px(c,0,h*.62,w,h*.38,"#754a2d");px(c,0,h*.57,w,20,"#46a848");px(c,70,h*.33,22,145,"#754a2d");px(c,48,h*.25,66,50,"#2b9a3e");px(c,120,h*.43,110,12,"#8e5a34");px(c,140,h*.49,90,12,"#8e5a34");tinyHero(c,w*.52,h*.45)}
+else if(id==="symmetry"){px(c,0,0,w,h,"#e9c28e");px(c,35,30,w-70,h-60,"#f8e3bd");px(c,w/2,30,3,h-60,"#d4773d");for(let i=0;i<8;i++){let x=75+(i%4)*55,y=65+Math.floor(i/4)*55;px(c,x,y,22,22,["#ef6c5b","#4aa7d8","#f1c84b","#8b68c7"][i%4]);px(c,w-x-22,y,22,22,["#ef6c5b","#4aa7d8","#f1c84b","#8b68c7"][i%4])}}
+else if(id==="dungeon"){px(c,0,0,w,h,"#19151f");for(let x=0;x<w;x+=45)for(let y=30;y<h;y+=45){px(c,x,y,40,40,(x+y)%90?"#3c3441":"#514453")}px(c,w*.18,h*.42,20,20,"#ffd34d");px(c,w*.72,h*.52,25,25,"#d95b63")}
+else if(id==="turbo"){px(c,0,0,w,h,"#54c5ff");px(c,w*.3,0,w*.4,h,"#3d3d43");for(let y=10;y<h;y+=55)px(c,w*.495,y,10,28,"#fff");car(c,w*.5,h*.7,"#ef3d45")}
+else if(id==="bass"){px(c,0,0,w,h,"#55c9ef");px(c,0,h*.3,w,h*.7,"#0b4c86");for(let y=h*.38;y<h;y+=40)px(c,0,y,w,2,"#1b70a6");boat(c,w*.52,h*.26);for(let i=0;i<7;i++)fish(c,45+i*43,160+(i%3)*42,["#f05a5a","#4fd06b","#ffc83d","#8a7cff"][i%4]);}
+}
+function plane(c,x,y,fill,outline){px(c,x-18,y-5,36,10,outline);px(c,x-6,y-22,12,44,outline);px(c,x-14,y-16,8,32,outline);px(c,x+6,y-16,8,32,outline);px(c,x-12,y-3,24,6,fill);px(c,x-3,y-19,6,38,fill)}
+function ship(c,x,y,fill,outline){px(c,x-5,y-28,10,56,outline);px(c,x-20,y-5,40,12,outline);px(c,x-4,y-24,8,46,fill);px(c,x-15,y-2,30,7,fill)}
+function frog(c,x,y,fill,outline){px(c,x-13,y-13,26,25,outline);px(c,x-9,y-9,18,20,fill);px(c,x-16,y-18,7,7,outline);px(c,x+9,y-18,7,7,outline)}
+function robot(c,x,y,fill){px(c,x-15,y-32,30,28,"#111");px(c,x-11,y-28,22,20,fill);px(c,x-20,y-7,40,9,"#111");px(c,x-15,y+2,10,25,"#111");px(c,x+5,y+2,10,25,"#111");px(c,x-24,y-2,9,7,fill);px(c,x+15,y-2,9,7,fill)}
+function boarder(c,x,y,fill){px(c,x-10,y-18,20,35,"#111");px(c,x-22,y-5,44,8,"#111");px(c,x-6,y-14,12,28,fill)}
+function car(c,x,y,fill){px(c,x-23,y-15,46,30,"#151b2b");px(c,x-16,y-10,32,17,fill);px(c,x-12,y+11,8,8,"#111");px(c,x+4,y+11,8,8,"#111")}
+function tinyHero(c,x,y){px(c,x-8,y-25,16,16,"#222");px(c,x-6,y-22,12,10,"#d99b65");px(c,x-15,y-8,30,18,"#e7c63d");px(c,x-12,y+10,8,20,"#253a72");px(c,x+4,y+10,8,20,"#253a72")}
+function boat(c,x,y){px(c,x-50,y,100,20,"#492e22");px(c,x-40,y+20,80,8,"#e9e9e9");px(c,x-4,y-35,8,35,"#222");px(c,x+4,y-32,35,22,"#f4f4f4")}
+function fish(c,x,y,col){px(c,x,y,22,8,col);px(c,x+20,y-5,8,18,col);px(c,x-5,y+2,7,4,col);px(c,x+4,y+2,3,3,"#111")}
+function artAll(){document.querySelectorAll(".thumb canvas").forEach(c=>scene(c,c.dataset.art,c.width,c.height))}
+artAll();
+const hero=$("#heroCanvas");scene(hero,"sky",hero.width,hero.height);
+
+function launch(id){
+current=id;state=Object.assign({x:480,y:400},loadData(id));
+let g=games.find(x=>x.id===id);$("#title").textContent=g.name;$("#type").textContent=g.type;$("#desc").textContent=g.desc;
+$("#hudLeft").textContent=id==="bass"?`MONEY $${state.coins||0}`:`SCORE ${String(state.score||0).padStart(6,"0")}`;
+$("#hudRight").textContent=id==="bass"?`FISH ${state.collection||0}/200`:"READY";
+nav("play");makeControls(id);gameLoop();
+}
+function makeControls(id){
+const c=$("#controls");c.innerHTML="";
+let list=[["LEFT","left"],["UP","up"],["DOWN","down"],["RIGHT","right"]];
+if(["sky","space","robot"].includes(id))list.push(["FIRE","action"]);
+else if(id==="frog")list.push(["JUMP","action"]);
+else if(id==="snow"||id==="turbo")list.push(["BOOST","action"]);
+else if(id==="dungeon")list.push(["ATTACK","action"]);
+else if(id==="bass")list.push(["CAST","action"]);
+else if(id==="symmetry")list.push(["DRAW","action"]);
+else if(id==="sandbox")list.push(["MINE","action"]);
+list.forEach(([label,key])=>{let b=document.createElement("button");b.textContent=label;b.onpointerdown=()=>keys[key]=true;b.onpointerup=b.onpointercancel=()=>keys[key]=false;c.appendChild(b)});
+}
+$("#back").onclick=()=>{saveData();nav("games")};
+
+function update(){if(!current)return;
+if(keys.left)state.x-=4;if(keys.right)state.x+=4;if(keys.up)state.y-=4;if(keys.down)state.y+=4;
+state.x=Math.max(25,Math.min(935,state.x));state.y=Math.max(70,Math.min(505,state.y));
+if(keys.action){state.score=(state.score||0)+1;if(current==="bass"){state.fish=(state.fish||0)+1;state.collection=Math.min(200,(state.collection||0)+1);state.coins=(state.coins||0)+10}keys.action=false}
+}
+function gameLoop(){if($("#play").classList.contains("hidden"))return;update();scene(ctx,current,canvas.width,canvas.height);drawPlayer();drawExtras();$("#hudLeft").textContent=current==="bass"?`MONEY $${state.coins||0}`:`SCORE ${String(state.score||0).padStart(6,"0")}`;$("#hudRight").textContent=current==="bass"?`FISH ${state.collection||0}/200`:"PLAYING";requestAnimationFrame(gameLoop)}
+function drawPlayer(){if(current==="sky")plane(ctx,state.x,state.y,"#fff","#111");else if(current==="space")ship(ctx,state.x,state.y,"#fff","#d33");else if(current==="frog")frog(ctx,state.x,state.y,"#48c848","#153d16");else if(current==="robot")robot(ctx,state.x,state.y,"#45a9ff");else if(current==="snow")boarder(ctx,state.x,state.y,"#e43d44");else if(current==="sandbox")tinyHero(ctx,state.x,state.y);else if(current==="dungeon")tinyHero(ctx,state.x,state.y);else if(current==="turbo")car(ctx,state.x,state.y,"#ef3d45");else if(current==="bass"){px(ctx,state.x-2,state.y-45,4,90,"#f5f5f5");px(ctx,state.x-22,state.y,44,4,"#f5f5f5")}}
+function drawExtras(){if(current==="bass"){px(ctx,820,90,90,260,"#062450");px(ctx,825,95,80,250,"#0b4b83");px(ctx,870,120,10,190,"#ffb52e");px(ctx,820,60,90,25,"#06194c");ctx.fillStyle="#fff";ctx.font="bold 18px Arial";ctx.fillText("DEPTH",837,80);ctx.fillText(Math.max(10,Math.floor((520-state.y)*2))+" FT",832,335)}if(current==="sandbox"){ctx.fillStyle="#fff";ctx.font="bold 18px Arial";ctx.fillText("BIOMES 5",25,505);ctx.fillText("BLOCKS 100+",145,505);ctx.fillText("WEAPONS 50+",290,505);ctx.fillText("BOSSES 10+",455,505);}}
+setInterval(saveData,5000);window.addEventListener("beforeunload",saveData);nav("home");
+</script>
+</body>
+</html>
