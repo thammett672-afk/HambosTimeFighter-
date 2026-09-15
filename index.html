@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#061b52">
+<title>Hambo's Games</title>
+<style>
+:root{
+  --navy:#06184a; --blue:#082b73; --blue2:#0b3c98; --cyan:#25a9ff;
+  --red:#ff3347; --white:#f5f8ff; --muted:#b9d7ff; --panel:#071f58;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#04143d;color:var(--white);font-family:Arial,sans-serif}
+body{background:
+ radial-gradient(circle at 15% 20%,#123d8c 0 2%,transparent 2.2%),
+ radial-gradient(circle at 82% 32%,#0d347e 0 2%,transparent 2.2%),
+ linear-gradient(135deg,#04143d,#08235f 48%,#03153e);
+ background-size:180px 180px,220px 220px,100% 100%;
+}
+button{font:inherit}
+.topbar{position:sticky;top:0;z-index:10;background:#041644eF;border-bottom:3px solid #1267d8;backdrop-filter:blur(8px)}
+.nav{max-width:1180px;margin:auto;display:flex;align-items:center;justify-content:center;gap:10px;padding:10px}
+.nav button{background:none;border:0;color:#fff;font-weight:900;padding:12px 18px;cursor:pointer;border-bottom:4px solid transparent}
+.nav button:hover,.nav button.active{color:#fff;border-color:var(--red)}
+.logo-wrap{max-width:1180px;margin:28px auto 18px;padding:0 18px}
+.logo{margin:auto;max-width:720px;background:#d9d9dc;border:8px solid #202020;outline:6px solid var(--red);box-shadow:0 0 0 12px #202020,0 12px 30px #0008;text-align:center;padding:28px 18px;color:var(--red);font-weight:1000;letter-spacing:4px;font-size:clamp(32px,7vw,74px);line-height:.95}
+.logo small{display:block;font-size:0.46em;letter-spacing:5px;margin-top:8px}
+.page{max-width:1180px;margin:34px auto;padding:0 18px 50px}
+.hero{background:linear-gradient(110deg,#061a50,#082d77);border:3px solid #075dcc;box-shadow:0 0 0 3px #02113a;padding:24px;border-radius:12px;display:grid;grid-template-columns:1.1fr .9fr;gap:22px}
+.hero h1{font-size:clamp(30px,5vw,52px);margin:0 0 10px}
+.hero p{color:var(--muted);font-size:18px;line-height:1.5}
+.cta,.play{border:0;background:var(--red);color:white;font-weight:1000;padding:13px 20px;border-radius:7px;cursor:pointer;box-shadow:0 4px 0 #9f1525}
+.hero-art{min-height:220px;border:3px solid var(--cyan);border-radius:8px;display:grid;place-items:center;background:linear-gradient(#168fe6 0 55%,#2caa43 55% 100%);font-size:70px}
+.section-title{display:flex;align-items:center;gap:18px;margin:32px 0 18px;font-size:28px}
+.section-title:before,.section-title:after{content:"";height:4px;background:var(--red);flex:1}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.card{background:linear-gradient(145deg,#06194d,#082966);border:3px solid #075dcc;box-shadow:0 0 0 2px #02133e;padding:10px;border-radius:10px}
+.thumb{aspect-ratio:16/10;border:3px solid #1696ff;border-radius:6px;display:grid;place-items:center;font-size:54px;margin-bottom:10px}
+.card h3{margin:4px 0;font-size:20px}
+.card p{color:#c4ddff;min-height:42px;margin:6px 0 12px;line-height:1.35}
+.card .play{width:100%}
+.badge{display:inline-block;font-size:11px;font-weight:900;padding:4px 7px;border:1px solid #54b7ff;border-radius:99px;color:#8fd1ff}
+.about{max-width:850px;margin:auto;background:#061b52;border:3px solid #075dcc;padding:30px;border-radius:12px;font-size:20px;line-height:1.6;color:#d7e9ff}
+.about h1{color:#fff}
+.game-panel{background:#04184b;border:3px solid #168fff;border-radius:12px;padding:18px}
+.game-head{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+.game-head h1{margin:0}
+#gameCanvas{width:100%;max-width:900px;display:block;margin:18px auto;border:4px solid #168fff;background:#000;border-radius:8px;image-rendering:pixelated}
+.controls{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+.controls button{background:#0a347d;color:#fff;border:2px solid #168fff;border-radius:9px;padding:10px 18px;cursor:pointer}
+.savebox{margin-top:15px;background:#06245e;padding:12px;border-radius:8px;color:#c9e3ff}
+.hidden{display:none!important}
+.footer{text-align:center;border-top:3px solid #1267d8;padding:24px;color:#8ec9ff}
+@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}.hero{grid-template-columns:1fr}}
+@media(max-width:560px){.nav{gap:0;justify-content:space-around}.nav button{padding:9px 7px;font-size:12px}.grid{grid-template-columns:1fr}.logo{font-size:36px}.page{padding-left:12px;padding-right:12px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <nav class="nav" aria-label="Main navigation">
+    <button data-page="home">🏠 HOME</button>
+    <button data-page="games">🎮 GAMES</button>
+    <button data-page="new">⭐ NEW GAMES</button>
+    <button data-page="about">ⓘ ABOUT</button>
+  </nav>
+</header>
+
+<div class="logo-wrap"><div class="logo">HAMBO'S<small>GAMES!</small></div></div>
+
+<main id="home" class="page">
+  <section class="hero">
+    <div>
+      <span class="badge">WELCOME TO HAMBO'S GAMES</span>
+      <h1>Small Games. Big Adventures.</h1>
+      <p>Play a growing collection of colorful retro games. This first test build includes the website navigation, game library, responsive layout, and a playable prototype system.</p>
+      <button class="cta" data-page="games">VIEW ALL GAMES ▶</button>
+    </div>
+    <div class="hero-art" aria-label="Pixel art preview">✈️ 🚀 🐸 🤖</div>
+  </section>
+  <h2 class="section-title">FEATURED GAMES</h2>
+  <div id="featuredGrid" class="grid"></div>
+</main>
+
+<main id="games" class="page hidden">
+  <h2 class="section-title">GAMES</h2>
+  <div id="gamesGrid" class="grid"></div>
+</main>
+
+<main id="new" class="page hidden">
+  <h2 class="section-title">NEW GAMES</h2>
+  <div class="about">
+    <h1>Coming Soon!</h1>
+    <p>New games will appear here as Hambo's Games grows. This page is ready for future releases without changing the main navigation.</p>
+  </div>
+</main>
+
+<main id="about" class="page hidden">
+  <h2 class="section-title">ABOUT</h2>
+  <div class="about">
+    <h1>About Hambo's Games</h1>
+    <p>Made by a kid who loves video games and wanted to make some too. There are many games available with more to come in the future!</p>
+  </div>
+</main>
+
+<main id="play" class="page hidden">
+  <section class="game-panel">
+    <div class="game-head">
+      <div><span id="gameType" class="badge"></span><h1 id="gameTitle"></h1><p id="gameDesc"></p></div>
+      <button class="controls button" id="backBtn">← BACK TO GAMES</button>
+    </div>
+    <canvas id="gameCanvas" width="900" height="520"></canvas>
+    <div class="controls" id="controls"></div>
+    <div class="savebox" id="saveStatus">Progress is saved in this browser automatically.</div>
+  </section>
+</main>
+
+<footer class="footer">© 2026 Hambo's Games &nbsp;|&nbsp; Play. Explore. Have Fun!</footer>
+
+<script>
+const games = [
+ {id:"sky",name:"Sky Ace",icon:"✈️",type:"Arcade Shooter",desc:"Fly, shoot, and survive waves of enemy planes."},
+ {id:"space",name:"Space Blaster",icon:"🚀",type:"Space Shooter",desc:"Defend the galaxy from enemy ships and asteroids."},
+ {id:"frog",name:"Frog Hop",icon:"🐸",type:"Arcade",desc:"Cross roads and rivers without getting hit."},
+ {id:"robot",name:"Robot Rampage",icon:"🤖",type:"Action",desc:"Battle enemy robots through a pixel city."},
+ {id:"snow",name:"Snow Rush",icon:"🏂",type:"Racing / Endless",desc:"Race downhill while dodging obstacles."},
+ {id:"sandbox",name:"Sand Box",icon:"🟫",type:"BIG GAME • Adventure",desc:"Explore. Fight. Build. A huge world is planned."},
+ {id:"symmetry",name:"Symmetry",icon:"🎨",type:"Relaxing Art",desc:"Draw, play with sand, and make satisfying patterns."},
+ {id:"dungeon",name:"Dungeon Dive",icon:"🗡️",type:"Adventure",desc:"Explore dungeons, find treasure, and survive monsters."},
+ {id:"turbo",name:"Turbo Tracks",icon:"🏎️",type:"Racing",desc:"Race, boost, and chase your best time."},
+ {id:"bass",name:"Big Bass Fishing",icon:"🎣",type:"BIG GAME • Fishing",desc:"Explore the ocean, catch fish, upgrade gear, and fill your Fish Collection."}
+];
+
+const $ = s => document.querySelector(s);
+const canvas = $("#gameCanvas"), ctx = canvas.getContext("2d");
+let currentGame = null, state = {score:0,x:450,y:400,fish:0,collection:0,coins:0,started:0};
+let keys = {};
+window.addEventListener("keydown",e=>{keys[e.key.toLowerCase()]=true;if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"," "].includes(e.key))e.preventDefault()});
+window.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
+
+function card(g){
+ return `<article class="card"><div class="thumb">${g.icon}</div><span class="badge">${g.type}</span><h3>${g.name}</h3><p>${g.desc}</p><button class="play" onclick="launch('${g.id}')">PLAY ▶</button></article>`;
+}
+$("#gamesGrid").innerHTML=games.map(card).join("");
+$("#featuredGrid").innerHTML=[games[0],games[1],games[5],games[9]].map(card).join("");
+
+function show(page){
+ document.querySelectorAll("main.page").forEach(x=>x.classList.add("hidden"));
+ $("#"+page).classList.remove("hidden");
+ document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+document.querySelectorAll("[data-page]").forEach(b=>b.addEventListener("click",()=>show(b.dataset.page)));
+
+$("#backBtn").onclick=()=>show("games");
+
+function loadSave(id){
+ try{return JSON.parse(localStorage.getItem("hambos_"+id))||{score:0,coins:0,collection:0,fish:0};}
+ catch(e){return {score:0,coins:0,collection:0,fish:0}}
+}
+function save(){
+ if(!currentGame)return;
+ localStorage.setItem("hambos_"+currentGame,JSON.stringify({score:state.score,coins:state.coins,collection:state.collection,fish:state.fish}));
+ $("#saveStatus").textContent="✓ Progress saved in this browser. Last saved: "+new Date().toLocaleTimeString();
+}
+function launch(id){
+ currentGame=id; const g=games.find(x=>x.id===id); state=Object.assign({x:450,y:400,started:Date.now()},loadSave(id));
+ $("#gameTitle").textContent=g.name; $("#gameType").textContent=g.type; $("#gameDesc").textContent=g.desc;
+ show("play"); buildControls(id); draw(); if(id==="bass") $("#saveStatus").textContent=`Fish Collection: ${state.collection||0}/200 • Money: $${state.coins||0} • Saved automatically.`;
+}
+function buildControls(id){
+ const c=$("#controls"); c.innerHTML="";
+ const buttons=[["◀","left"],["▲","up"],["▼","down"],["▶","right"],["ACTION","action"]];
+ buttons.forEach(([t,k])=>{let b=document.createElement("button");b.textContent=t;b.onpointerdown=()=>keys[k]=true;b.onpointerup=b.onpointercancel=()=>keys[k]=false;c.appendChild(b)});
+}
+function draw(){
+ if(!currentGame)return;
+ const g=currentGame;
+ ctx.clearRect(0,0,canvas.width,canvas.height);
+ if(g==="sky"){sky(); player("✈️"); enemies("🛩️");}
+ else if(g==="space"){space();player("🚀"); enemies("👾");}
+ else if(g==="frog"){frog();player("🐸");}
+ else if(g==="robot"){city();player("🤖"); enemies("👹");}
+ else if(g==="snow"){snow();player("🏂");}
+ else if(g==="sandbox"){sandbox();}
+ else if(g==="symmetry"){symmetry();}
+ else if(g==="dungeon"){dungeon();player("🧙");}
+ else if(g==="turbo"){race();player("🏎️");}
+ else if(g==="bass"){bass();}
+ requestAnimationFrame(draw);
+}
+function bg(c1,c2){let g=ctx.createLinearGradient(0,0,0,canvas.height);g.addColorStop(0,c1);g.addColorStop(1,c2);ctx.fillStyle=g;ctx.fillRect(0,0,canvas.width,canvas.height)}
+function text(t,x,y,size=24){ctx.fillStyle="#fff";ctx.font=`900 ${size}px Arial`;ctx.fillText(t,x,y)}
+function player(icon){text(icon,state.x-22,state.y,44); if(keys.left||keys.arrowleft)state.x-=4;if(keys.right||keys.arrowright)state.x+=4;if(keys.up||keys.arrowup)state.y-=4;if(keys.down||keys.arrowdown)state.y+=4;state.x=Math.max(20,Math.min(860,state.x));state.y=Math.max(50,Math.min(490,state.y))}
+function enemies(icon){for(let i=0;i<5;i++){let x=(i*173+(Date.now()/7)%173)%860+10,y=90+(i*67)%280;text(icon,x,y,30)}text("SCORE "+state.score,20,34,22)}
+function sky(){bg("#168fe6","#8dd9ff");for(let i=0;i<8;i++)text("☁️",80+i*120,90+(i%2)*100,42);text("SKY ACE",20,34,22)}
+function space(){bg("#02061e","#10135a");for(let i=0;i<35;i++){ctx.fillStyle="#fff";ctx.fillRect((i*83)%900,(i*47)%500,2,2)}}
+function frog(){bg("#78c7ff","#53a83d");for(let y=120;y<430;y+=75){ctx.fillStyle=y%150?"#444":"#1d8f43";ctx.fillRect(0,y,900,48)}for(let x=40;x<860;x+=170)text("🚗",x,150,36);for(let x=80;x<850;x+=190)text("🪵",x,310,34);text("FROG HOP",20,34,22)}
+function city(){bg("#11133d","#3b1762");for(let x=0;x<900;x+=90){ctx.fillStyle="#24275d";ctx.fillRect(x,180-(x%3)*25,70,340)}text("ROBOT RAMPAGE",20,34,22)}
+function snow(){bg("#9ddfff","#e9f7ff");for(let x=30;x<900;x+=110){text("🌲",x,150+(x%3)*45,45)}ctx.fillStyle="#fff";ctx.fillRect(350,0,200,520);text("SNOW RUSH",20,34,22)}
+function sandbox(){bg("#63c8ff","#2f8c3b");ctx.fillStyle="#744728";ctx.fillRect(0,360,900,160);for(let x=0;x<900;x+=70){ctx.fillStyle=x%140?"#4a9f3a":"#5bb84a";ctx.fillRect(x,350,70,20)}text("🧑",430,340,38);text("⛏️",20,34,24);text("HEARTS ♥♥♥♥♥",700,34,20);text("EXPLORE • FIGHT • BUILD",300,500,24)}
+function symmetry(){bg("#f3d7ad","#d5a66d");ctx.fillStyle="#fff";ctx.fillRect(70,70,760,380);ctx.strokeStyle="#e77a3a";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(450,70);ctx.lineTo(450,450);ctx.stroke();for(let i=0;i<12;i++){ctx.fillStyle=`hsl(${i*30},70%,60%)`;ctx.beginPath();ctx.arc(170+(i%4)*90,140+Math.floor(i/4)*90,22,0,7);ctx.fill();ctx.beginPath();ctx.arc(730-(i%4)*90,140+Math.floor(i/4)*90,22,0,7);ctx.fill()}text("SYMMETRY • DRAW • RELAX",280,500,24)}
+function dungeon(){bg("#111","#352d3b");for(let x=0;x<900;x+=60){ctx.strokeStyle="#6b5a68";ctx.strokeRect(x,70,60,380)}text("🪙",150,180,35);text("👻",650,300,35);text("DUNGEON DIVE",20,34,22)}
+function race(){bg("#5bc5ff","#3b9346");ctx.fillStyle="#444";ctx.fillRect(300,0,300,520);ctx.strokeStyle="#fff";ctx.setLineDash([30,25]);ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(450,0);ctx.lineTo(450,520);ctx.stroke();ctx.setLineDash([]);text("LAP 1/3",20,34,22)}
+function bass(){
+ bg("#55c9f0","#063d79");for(let y=120;y<520;y+=70){ctx.fillStyle=`rgba(0,20,70,${.15+(y/700)})`;ctx.fillRect(0,y,900,70)}
+ text("🎣",420,120,42);for(let i=0;i<12;i++)text(["🐟","🐠","🐡","🦈"][i%4],80+(i*71)%760,180+(i*47)%270,25);
+ text("DEPTH: "+Math.max(10,Math.floor((520-state.y)*2))+" ft",20,34,22);
+ text("FISH: "+(state.fish||0)+"  •  COLLECTION: "+(state.collection||0)+"/200  •  $"+(state.coins||0),20,500,20);
+ if(keys.action||keys[" "]){state.fish=(state.fish||0)+1;state.collection=Math.min(200,(state.collection||0)+1);state.coins=(state.coins||0)+10;keys.action=false;save();}
+}
+setInterval(save,5000);
+window.addEventListener("beforeunload",save);
+show("home");
+</script>
+</body>
+</html>
