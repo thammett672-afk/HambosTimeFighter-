@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>SandBox — Explore. Fight. Build.</title>
+<style>
+:root{--bg:#07152c;--panel:#0d2344;--panel2:#123158;--ink:#eef6ff;--muted:#9db6d5;--gold:#ffd45c;--danger:#ff6874}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#020914;color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,sans-serif}
+button,input{font:inherit}
+button{border:0;color:var(--ink);background:linear-gradient(#1c4778,#102d51);border:2px solid #4c78a8;border-radius:10px;box-shadow:0 3px 0 #061426;cursor:pointer}
+button:active{transform:translateY(2px);box-shadow:0 1px 0 #061426}
+#app{width:100%;height:100%;position:relative}
+.screen{position:absolute;inset:0;display:none}
+.screen.active{display:flex}
+#menu{align-items:center;justify-content:center;background:radial-gradient(circle at 50% 15%,#174e83 0,#0a2444 42%,#030b17 100%)}
+.menuCard{width:min(720px,94vw);padding:26px;border:3px solid #4776a6;background:rgba(5,17,34,.94);border-radius:18px;box-shadow:0 20px 80px #0008;text-align:center}
+.logo{font-weight:1000;letter-spacing:5px;font-size:clamp(42px,10vw,82px);text-shadow:4px 4px #020711;margin:0}
+.tag{color:#9cc8ed;letter-spacing:3px;margin:4px 0 24px}
+.menuBtns{display:grid;gap:12px;max-width:430px;margin:auto}
+.menuBtns button{min-height:56px;font-size:20px;font-weight:800}
+.small{color:var(--muted);font-size:13px;margin-top:18px}
+.worlds{display:grid;gap:10px;margin:15px 0}
+.worldRow{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:10px;background:#0b1e39;border:1px solid #31577f;border-radius:10px;text-align:left}
+.worldMeta b{display:block}.worldMeta span{font-size:12px;color:var(--muted)}
+.modal{position:absolute;inset:0;background:#0009;display:none;align-items:center;justify-content:center;z-index:50;padding:15px}
+.modal.show{display:flex}
+.dialog{width:min(520px,95vw);background:#0b1c35;border:2px solid #4d78a8;border-radius:14px;padding:20px}
+.dialog h2{margin-top:0}.dialog label{display:block;color:#a9c3df;font-size:13px;margin-top:10px}.dialog input,.dialog select{width:100%;padding:11px;border-radius:8px;border:1px solid #55789d;background:#061327;color:white;margin-top:5px}.dialog .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+#game{background:#07121e;align-items:center;justify-content:center}
+#gameCanvas{image-rendering:pixelated;image-rendering:crisp-edges;width:min(100vw,calc(100vh * 16 / 9));height:min(100vh,calc(100vw * 9 / 16));background:#6eb8e9;display:block}
+#hud{position:absolute;inset:0;pointer-events:none}
+.topbar{position:absolute;top:8px;left:8px;right:8px;display:flex;justify-content:space-between;gap:8px;font-size:12px;text-shadow:2px 2px #000}
+.pill{background:#07172ccc;border:1px solid #7c9dbd;padding:5px 8px;border-radius:7px}
+#hotbar{position:absolute;left:50%;bottom:9px;transform:translateX(-50%);display:flex;gap:3px;pointer-events:auto}
+.slot{width:46px;height:46px;border:2px solid #6683a0;background:#07172ed9;border-radius:6px;position:relative;display:flex;align-items:center;justify-content:center;font-size:22px}
+.slot.sel{border-color:#ffe06b;box-shadow:0 0 0 2px #fff4}
+.slot small{position:absolute;right:2px;bottom:0;font-size:10px;color:#fff}
+#controls{position:absolute;inset:0;pointer-events:none}
+#stick{position:absolute;left:18px;bottom:70px;width:112px;height:112px;border-radius:50%;background:#0b213acc;border:2px solid #7190ae;pointer-events:auto}
+#nub{position:absolute;width:48px;height:48px;left:30px;top:30px;border-radius:50%;background:#4779a6;border:2px solid #a4c7e8}
+.actionBtn{position:absolute;right:18px;bottom:80px;width:72px;height:72px;border-radius:50%;pointer-events:auto;font-weight:900}
+#jumpBtn{right:102px;bottom:66px;width:54px;height:54px}
+#invBtn{right:18px;top:48px;width:54px;height:42px}
+#inventory{position:absolute;inset:0;background:#0008;display:none;align-items:center;justify-content:center;pointer-events:auto}
+#inventory.show{display:flex}
+.invPanel{width:min(720px,94vw);max-height:86vh;overflow:auto;background:#0b1c35;border:2px solid #557da8;border-radius:14px;padding:15px}
+.invGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:6px}
+.invItem{height:62px;background:#0a2949;border:1px solid #426b91;border-radius:7px;padding:4px;text-align:center;font-size:11px}
+.invItem .ico{font-size:24px;display:block}.invItem .cnt{color:#ffd45c}
+#craftList{display:grid;gap:7px;margin-top:10px}.recipe{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:8px;background:#081a30;border:1px solid #345a7e;border-radius:8px}.recipe p{margin:0;font-size:12px}.recipe button{padding:7px 10px}
+#toast{position:absolute;left:50%;top:13%;transform:translateX(-50%);background:#07182bd9;border:1px solid #a2c2df;padding:9px 14px;border-radius:8px;display:none;z-index:40;pointer-events:none}
+#toast.show{display:block}
+#death{align-items:center;justify-content:center;background:#05080eaa;z-index:45}
+.deathCard{text-align:center;background:#09182c;border:2px solid #a85b62;border-radius:15px;padding:26px;width:min(430px,92vw)}
+.deathCard h2{font-size:42px;margin:0 0 8px;color:#ff7a84}
+@media(min-width:800px){#controls{opacity:.86}.slot{width:52px;height:52px}}
+</style>
+</head>
+<body>
+<div id="app">
+<section id="menu" class="screen active">
+  <div class="menuCard">
+    <h1 class="logo">SANDBOX</h1><div class="tag">EXPLORE • FIGHT • BUILD</div>
+    <div class="menuBtns">
+      <button id="continueBtn">CONTINUE WORLD</button>
+      <button id="createBtn">CREATE WORLD</button>
+      <button id="worldsBtn">WORLDS</button>
+    </div>
+    <div class="small">A kid-made 16-bit adventure • Save data stays on this device</div>
+  </div>
+</section>
+
+<section id="worldScreen" class="screen">
+ <div class="menuCard">
+  <h2>YOUR WORLDS</h2>
+  <div id="worldList" class="worlds"></div>
+  <button id="backMenu">BACK</button>
+ </div>
+</section>
+
+<section id="game" class="screen">
+ <canvas id="gameCanvas" width="320" height="180"></canvas>
+ <div id="hud">
+  <div class="topbar">
+   <div class="pill">♥ <span id="hpText">100</span> / 100</div>
+   <div class="pill"><span id="biomeText">Forest</span> • <span id="timeText">DAY</span></div>
+   <div class="pill">⛏ <span id="oreText">0</span> • <span id="worldText"></span></div>
+  </div>
+  <div id="hotbar"></div>
+  <div id="controls">
+   <div id="stick"><div id="nub"></div></div>
+   <button id="jumpBtn" class="actionBtn">JUMP</button>
+   <button id="attackBtn" class="actionBtn">HIT</button>
+   <button id="invBtn">BAG</button>
+  </div>
+  <div id="toast"></div>
+  <div id="inventory">
+   <div class="invPanel">
+    <div style="display:flex;justify-content:space-between;align-items:center"><h2 style="margin:0">INVENTORY & CRAFTING</h2><button id="closeInv">X</button></div>
+    <p style="color:#9db6d5;font-size:12px">Select a hotbar item, then tap a nearby tile to place it. Mine blocks with HIT. Crafting stations unlock better recipes.</p>
+    <h3>CRAFTING</h3><div id="craftList"></div>
+    <h3>ITEMS</h3><div id="invGrid" class="invGrid"></div>
+   </div>
+  </div>
+ </div>
+</section>
+
+<section id="death" class="screen">
+ <div class="deathCard"><h2>YOU DIED</h2><p id="deathText"></p><button id="respawnBtn">RESPAWN</button> <button id="quitDeath">SAVE & MENU</button></div>
+</section>
+
+<div id="createModal" class="modal">
+ <div class="dialog">
+  <h2>Create World</h2>
+  <label>World name<input id="worldName" maxlength="24" placeholder="My World"></label>
+  <label>Seed (leave blank for random)<input id="worldSeed" maxlength="18" placeholder="Random"></label>
+  <label>World size<select id="worldSize"><option value="small">Small</option><option value="medium">Medium</option><option value="large">Large</option></select></label>
+  <label>World flavor<select id="evilType"><option value="random">Random danger zone</option><option value="corruption">Corruption</option><option value="crimson">Crimson</option></select></label>
+  <div class="actions"><button id="cancelCreate">CANCEL</button><button id="makeWorld">CREATE</button></div>
+ </div>
+</div>
+
+<script>
+"use strict";
+const C=document.getElementById("gameCanvas"),ctx=C.getContext("2d");
+const W=320,H=180,T=8, COLS=420, ROWS=120;
+const SAVEKEY="sandbox_worlds_v1";
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+function hash(x){x|=0;x=Math.imul(x^61,x^x>>>16);x=Math.imul(x,9);x=x^x>>>4;return (x>>>0)/4294967296}
+function noise(x,s){const i=Math.floor(x),f=x-i;return lerp(hash(i+s)*2-1,hash(i+1+s)*2-1,f*f*(3-2*f))}
+function seeded(seed){let n=0;for(let i=0;i<String(seed).length;i++)n=(n*31+String(seed).charCodeAt(i))|0;return n||12345}
+
+const blocks={
+ air:{solid:false,color:"#000"},grass:{solid:true,color:"#5d9e3b"},dirt:{solid:true,color:"#80552e"},stone:{solid:true,color:"#59616a"},
+ wood:{solid:true,color:"#80552f"},leaf:{solid:true,color:"#2e7839"},sand:{solid:true,color:"#d7b866"},snow:{solid:true,color:"#dbeeff"},
+ ice:{solid:true,color:"#9bd6ee"},clay:{solid:true,color:"#b86f61"},coal:{solid:true,color:"#252a31"},copper:{solid:true,color:"#b86d43"},
+ iron:{solid:true,color:"#9ba9b6"},silver:{solid:true,color:"#c6d3dc"},gold:{solid:true,color:"#e7c24f"},gem:{solid:true,color:"#5cc6db"},
+ jungle:{solid:true,color:"#27714b"},mushroom:{solid:true,color:"#b65e8d"},corrupt:{solid:true,color:"#5b3c79"},crimson:{solid:true,color:"#7c313d"},
+ obsidian:{solid:true,color:"#2b2444"},brick:{solid:true,color:"#985848"},glass:{solid:true,color:"#9dd7dc"},workbench:{solid:true,color:"#a06a3a"},
+ furnace:{solid:true,color:"#4c555f"},anvil:{solid:true,color:"#78848d"},torch:{solid:false,color:"#ffcf59"}
+};
+const items={
+wood:{name:"Wood",icon:"🪵",block:"wood"},dirt:{name:"Dirt",icon:"■",block:"dirt"},stone:{name:"Stone",icon:"◆",block:"stone"},workbench:{name:"Workbench",icon:"▤",block:"workbench"},furnace:{name:"Furnace",icon:"▦",block:"furnace"},anvil:{name:"Anvil",icon:"▰",block:"anvil"},
+grass:{name:"Grass Block",icon:"▣",block:"grass"},sand:{name:"Sand",icon:"▪",block:"sand"},snow:{name:"Snow",icon:"❄",block:"snow"},
+copper:{name:"Copper Ore",icon:"●"},iron:{name:"Iron Ore",icon:"●"},gold:{name:"Gold Ore",icon:"●"},coal:{name:"Coal",icon:"●"},
+torch:{name:"Torch",icon:"🔥",block:"torch"},woodSword:{name:"Wood Sword",icon:"⚔",weapon:true,damage:14},
+stonePick:{name:"Stone Pickaxe",icon:"⛏",tool:true},copperPick:{name:"Copper Pickaxe",icon:"⛏",tool:true},
+ironSword:{name:"Iron Sword",icon:"⚔",weapon:true,damage:28},bow:{name:"Wood Bow",icon:"🏹",weapon:true,damage:12}
+};
+const recipes=[
+ {out:"workbench",n:1,req:{wood:10},station:null,block:"workbench"},
+ {out:"torch",n:8,req:{wood:1,coal:1},station:null},
+ {out:"stonePick",n:1,req:{wood:8,stone:12},station:"workbench"},
+ {out:"woodSword",n:1,req:{wood:8},station:"workbench"},
+ {out:"furnace",n:1,req:{stone:20,wood:4,coal:4},station:"workbench",block:"furnace"},
+ {out:"anvil",n:1,req:{iron:15,stone:5},station:"furnace",block:"anvil"},
+ {out:"copperPick",n:1,req:{wood:8,copper:12},station:"furnace"},
+ {out:"ironSword",n:1,req:{iron:15,wood:4},station:"anvil"},
+ {out:"bow",n:1,req:{wood:10},station:"workbench"}
+];
+
+let worlds=loadWorlds(), current=null, player=null, enemies=[], projectiles=[], particles=[], camera={x:0,y:0}, keys={}, last=0, gameTime=0, saveTimer=0;
+function loadWorlds(){try{return JSON.parse(localStorage.getItem(SAVEKEY)||"[]")}catch(e){return[]}}
+function saveWorlds(){localStorage.setItem(SAVEKEY,JSON.stringify(worlds))}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));document.getElementById(id).classList.add("active")}
+function toast(s){const e=document.getElementById("toast");e.textContent=s;e.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove("show"),1800)}
+function randName(){return ["Oak","Moon","Star","Stone","Moss","Ember","Cloud","River"][Math.floor(Math.random()*8)]+" "+["Vale","Reach","Hollow","Ridge","Wilds","Grove"][Math.floor(Math.random()*6)]}
+
+function createWorld(name,seed,size,evil){
+ const s=seed||Math.floor(Math.random()*2147483647); const r=seeded(s);
+ const scale=size==="large"?1.35:size==="medium"?1.12:1;
+ const cols=Math.floor(COLS*scale), rows=ROWS, tiles=new Array(cols*rows).fill("air");
+ const surf=[];
+ for(let x=0;x<cols;x++){
+  const n=noise(x*.09,r)+noise(x*.025,r+77)*.55;
+  let sy=48+Math.floor(n*11+noise(x*.3,r+9)*3);
+  sy=clamp(sy,38,68); surf[x]=sy;
+  for(let y=sy;y<rows;y++){
+   let b="stone"; if(y===sy)b="grass"; else if(y<sy+5)b="dirt";
+   if(y>90)b="stone";
+   if(y>96 && hash(x*991+y*313+r)<.11)b=["coal","copper","iron","gold","gem"][Math.floor(hash(x*33+y*71+r)*5)];
+   tiles[y*cols+x]=b;
+  }
+  if(x%3===0 && hash(x+r)>.35 && x>5 && x<cols-6){
+   const th=3+Math.floor(hash(x*7+r)*4);
+   for(let y=sy-1;y>sy-1-th;y--)tiles[y*cols+x]="wood";
+   for(let dx=-2;dx<=2;dx++)for(let dy=-2;dy<=1;dy++)if(hash((x+dx)*77+(sy+dy)*19+r)>.2)tiles[(sy-th+dy)*cols+x+dx]="leaf";
+  }
+ }
+ // biome bands: forest -> desert -> snow -> jungle -> danger zone -> forest
+ const bands=[.16,.31,.49,.68,.82];
+ for(let x=0;x<cols;x++){
+  let b= x/cols;
+  if(b>.16&&b<.29){for(let y=surf[x];y<rows;y++)if(y<surf[x]+8)tiles[y*cols+x]=y===surf[x]?"sand":"sand"}
+  if(b>.31&&b<.43){for(let y=surf[x];y<rows;y++)if(y<surf[x]+8)tiles[y*cols+x]=y===surf[x]?"snow":"ice"}
+  if(b>.49&&b<.66){for(let y=surf[x];y<rows;y++)if(y<surf[x]+9)tiles[y*cols+x]=y===surf[x]?"jungle":"dirt"}
+  if(b>.70&&b<.79){for(let y=surf[x];y<rows;y++)if(y<surf[x]+10)tiles[y*cols+x]=evil==="crimson"?"crimson":"corrupt"}
+ }
+ // caves
+ for(let i=0;i<2600*scale;i++){let x=3+Math.floor(hash(i*17+r)* (cols-6)), y=58+Math.floor(hash(i*29+r+2)*48); if(y>surf[x]+5)tiles[y*cols+x]="air"}
+ // simple structures: cabins / towers / shrine
+ for(let k=0;k<3;k++){
+  const x=Math.floor((.24+k*.26)*cols), y=surf[x]-6, w=9, h=6;
+  for(let xx=x;xx<x+w;xx++)for(let yy=y;yy<y+h;yy++)if(xx>=0&&xx<cols&&yy>=0)tiles[yy*cols+xx]=(xx===x||xx===x+w-1||yy===y+h-1)?"wood":"air";
+  tiles[(y+h-2)*cols+x+4]="air";
+ }
+ const id=uid();
+ return {id,name:name||randName(),seed:s,size,evil:evil==="random"?(hash(r)>.5?"crimson":"corruption"):evil,cols,rows,tiles,surf,spawn:{x:Math.floor(cols/2),y:surf[Math.floor(cols/2)]-3},created:Date.now(),lastPlayed:Date.now(),day:0,progress:{bosses:0,structureLoot:0}};
+}
+function newPlayer(w){
+ return {x:w.spawn.x+.5,y:w.spawn.y-.1,vx:0,vy:0,w:0.72,h:1.65,hp:100,maxHp:100,onGround:false,inv:{wood:20,dirt:20,stone:10},selected:0,hot:["woodSword","stonePick","dirt","wood","torch"],facing:1,attackCd:0,damageFlash:0,spawnX:w.spawn.x+.5,spawnY:w.spawn.y-.1}
+}
+function startWorld(w){
+ current=w; w.lastPlayed=Date.now(); player=newPlayer(w); enemies=[];projectiles=[];particles=[];gameTime=0;
+ // ensure a few starter items
+ if(!player.inv.wood)player.inv.wood=20; if(!player.inv.dirt)player.inv.dirt=20; if(!player.inv.stone)player.inv.stone=10; if(!player.inv.woodSword)player.inv.woodSword=1; if(!player.inv.stonePick)player.inv.stonePick=1;
+ show("game"); renderHotbar(); toast("World loaded! Gather wood and stone.");
+}
+function continueWorld(){if(worlds.length)startWorld([...worlds].sort((a,b)=>b.lastPlayed-a.lastPlayed)[0]);else openCreate()}
+function openCreate(){if(worlds.length>=3){toast("You already have 3 worlds.");showWorlds();return}document.getElementById("createModal").classList.add("show");document.getElementById("worldName").value=randName();document.getElementById("worldSeed").value=""}
+function showWorlds(){
+ const list=document.getElementById("worldList");list.innerHTML="";
+ if(!worlds.length)list.innerHTML="<div class='small'>No worlds yet. Create your first adventure!</div>";
+ worlds.forEach((w,i)=>{
+  const row=document.createElement("div");row.className="worldRow";
+  row.innerHTML=`<div class="worldMeta"><b>${esc(w.name)}</b><span>${w.size} • ${w.evil} • seed ${w.seed}</span></div><button>PLAY</button><button>DELETE</button>`;
+  row.children[1].onclick=()=>startWorld(w);
+  row.children[2].onclick=()=>{if(confirm("Delete "+w.name+"?")){worlds.splice(i,1);saveWorlds();showWorlds()}};
+  list.appendChild(row);
+ });
+ show("worldScreen");
+}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+
+function tile(x,y){if(!current||x<0||y<0||x>=current.cols||y>=current.rows)return"stone";return current.tiles[y*current.cols+x]}
+function setTile(x,y,b){if(x<0||y<0||x>=current.cols||y>=current.rows)return;current.tiles[y*current.cols+x]=b}
+function solidAt(x,y){return blocks[tile(Math.floor(x),Math.floor(y))]?.solid}
+function biomeAt(x){
+ const p=x/current.cols;
+ if(p>.16&&p<.29)return"Desert"; if(p>.31&&p<.43)return"Snow"; if(p>.49&&p<.66)return"Jungle"; if(p>.70&&p<.79)return current.evil==="crimson"?"Crimson":"Corruption"; return"Forest"
+}
+function mine(){
+ const range=2.2, tx=Math.floor(player.x+player.facing*1.1), ty=Math.floor(player.y);
+ for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+  const x=tx+dx,y=ty+dy,b=tile(x,y);
+  if(b!=="air"&&b!=="leaf"&&Math.hypot(x+.5-player.x,y+.5-player.y)<range){
+   const need={stonePick:["stone","coal","copper","iron","gold","gem"],copperPick:["iron","gold","gem"]};
+   const selected=player.hot[player.selected], ok=selected==="stonePick"||selected==="copperPick";
+   if(["stone","coal","copper","iron","gold","gem"].includes(b)&&!ok){toast("You need a pickaxe.");return}
+   setTile(x,y,"air");player.inv[b]=(player.inv[b]||0)+1; burst(x+.5,y+.5,"#fff");toast("+"+b);return;
+  }
+ }
+ // attack enemies
+ attack();
+}
+function place(){
+ const id=player.hot[player.selected], it=items[id]; if(!it||!it.block)return;
+ const n=player.inv[id]||0;if(n<=0){toast("None left.");return}
+ const x=Math.floor(player.x+player.facing*1.15),y=Math.floor(player.y+.4);
+ if(tile(x,y)==="air" && Math.hypot(x+.5-player.x,y+.5-player.y)<2.4 && !overlapsPlayer(x,y)){
+  setTile(x,y,it.block);player.inv[id]--;toast("Placed "+it.name);
+ }
+}
+function overlapsPlayer(x,y){return x<player.x+.35&&x+1>player.x-.35&&y<player.y+1.5&&y+1>player.y-.2}
+function attack(){
+ if(player.attackCd>0)return;player.attackCd=.28;
+ const id=player.hot[player.selected], dmg=items[id]?.damage||8;
+ if(!items[id]?.weapon && id!=="stonePick"&&id!=="copperPick"){place();return}
+ enemies.forEach(e=>{if(Math.abs(e.x-player.x)<2.0&&Math.abs(e.y-player.y)<1.8){e.hp-=dmg;e.hit=.12;burst(e.x,e.y,"#ffe07b")}})
+}
+function craft(id){
+ const r=recipes.find(x=>x.out===id);if(!r)return;
+ for(const [k,v] of Object.entries(r.req))if((player.inv[k]||0)<v){toast("Need more "+k);return}
+ for(const [k,v] of Object.entries(r.req))player.inv[k]-=v;
+ player.inv[id]=(player.inv[id]||0)+r.n;toast("Crafted "+items[id]?.name||id);renderInventory();renderHotbar();
+}
+function hasStation(name){
+ for(let y=Math.floor(player.y)-4;y<=Math.floor(player.y)+4;y++)for(let x=Math.floor(player.x)-5;x<=Math.floor(player.x)+5;x++)if(tile(x,y)===name)return true;
+ return false;
+}
+function renderInventory(){
+ const g=document.getElementById("invGrid");g.innerHTML="";
+ Object.entries(player.inv).filter(([k,v])=>v>0).forEach(([k,v])=>{const d=document.createElement("div");d.className="invItem";d.innerHTML=`<span class="ico">${items[k]?.icon||"◆"}</span>${esc(items[k]?.name||k)}<div class="cnt">x${v}</div>`;g.appendChild(d)});
+ const cl=document.getElementById("craftList");cl.innerHTML="";
+ recipes.forEach(r=>{const ok=Object.entries(r.req).every(([k,v])=>(player.inv[k]||0)>=v)&&(r.station?hasStation(r.station):true);const d=document.createElement("div");d.className="recipe";d.innerHTML=`<p><b>${items[r.out]?.icon||"◆"} ${esc(items[r.out]?.name||r.out)} ×${r.n}</b><br>${Object.entries(r.req).map(([k,v])=>`${v} ${k}`).join(" • ")}${r.station?" • "+r.station:""}</p><button ${ok?"":"disabled"}>CRAFT</button>`;d.querySelector("button").onclick=()=>craft(r.out);cl.appendChild(d)});
+}
+function renderHotbar(){
+ const h=document.getElementById("hotbar");h.innerHTML="";
+ player.hot.forEach((id,i)=>{const d=document.createElement("button");d.className="slot"+(i===player.selected?" sel":"");d.innerHTML=`${items[id]?.icon||"?"}<small>${player.inv[id]||0}</small>`;d.onclick=()=>{player.selected=i;renderHotbar()};h.appendChild(d)})
+}
+function spawnEnemy(){
+ if(enemies.length>=6)return;
+ const side=Math.random()<.5?-1:1,x=clamp(Math.floor(player.x+side*(14+Math.random()*8)),3,current.cols-4),y=current.surf[x]-2;
+ const type=Math.random()<.18?"Slime":Math.random()<.15?"Cave Bat":"Crawler";
+ enemies.push({x,y,vx:0,vy:0,hp:type==="Slime"?35:25,max:type==="Slime"?35:25,type,hit:0})
+}
+function update(dt){
+ if(!player)return;
+ gameTime+=dt;player.attackCd=Math.max(0,player.attackCd-dt);player.damageFlash=Math.max(0,player.damageFlash-dt);
+ let move=0;if(keys.a||keys.ArrowLeft)move--;if(keys.d||keys.ArrowRight)move++;if(stick.dx)move=stick.dx;
+ player.vx=lerp(player.vx,move*4.0,Math.min(1,dt*10));if(move)player.facing=move>0?1:-1;
+ player.vy+=18*dt; if((keys.w||keys.ArrowUp||jumpPressed)&&player.onGround){player.vy=-7.2;player.onGround=false}
+ jumpPressed=false;
+ player.x+=player.vx*dt;if(solidAt(player.x-.32,player.y+1.1)||solidAt(player.x+.32,player.y+1.1)){player.x-=player.vx*dt;player.vx=0}
+ player.y+=player.vy*dt;player.onGround=false;
+ if(solidAt(player.x-.3,player.y+1.5)||solidAt(player.x+.3,player.y+1.5)){while(solidAt(player.x-.3,player.y+1.5)||solidAt(player.x+.3,player.y+1.5))player.y-=.04;player.vy=0;player.onGround=true}
+ if(solidAt(player.x-.3,player.y)||solidAt(player.x+.3,player.y)){player.y+=.04;player.vy=Math.max(0,player.vy)}
+ player.x=clamp(player.x,1,current.cols-2);player.y=clamp(player.y,1,current.rows-4);
+ if(Math.random()<dt*(gameTime%180<90?.45:.18))spawnEnemy();
+ enemies.forEach(e=>{
+  e.hit=Math.max(0,e.hit-dt);let dir=Math.sign(player.x-e.x);e.vx=lerp(e.vx,dir*(e.type==="Cave Bat"?2.2:1.25),dt*2.5);
+  e.vy+=18*dt;e.x+=e.vx*dt;e.y+=e.vy*dt;
+  if(solidAt(e.x,e.y+1)){e.y=Math.floor(e.y+1)-1;e.vy=0}
+  if(Math.abs(e.x-player.x)<.8&&Math.abs(e.y-player.y)<1.4&&player.damageFlash<=0){player.hp-=8;player.damageFlash=.7;toast("-8 HP");if(player.hp<=0)die()}
+ });
+ enemies=enemies.filter(e=>e.hp>0&&Math.abs(e.x-player.x)<30);
+ particles.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=8*dt;p.life-=dt});particles=particles.filter(p=>p.life>0);
+ camera.x=lerp(camera.x,player.x* T-W/2,.12);camera.y=lerp(camera.y,player.y*T-H/2,.12);camera.x=clamp(camera.x,0,current.cols*T-W);camera.y=clamp(camera.y,0,current.rows*T-H);
+ saveTimer+=dt;if(saveTimer>8){saveCurrent();saveTimer=0}
+ updateHUD();
+}
+function die(){saveCurrent();document.getElementById("deathText").textContent="You lost some time in "+biomeAt(player.x)+" but your world was saved.";show("death")}
+function respawn(){player.x=player.spawnX;player.y=player.spawnY;player.hp=player.maxHp;enemies=[];show("game");toast("Back to the adventure!")}
+function burst(x,y,c){for(let i=0;i<5;i++)particles.push({x,y,vx:(Math.random()-.5)*3,vy:(Math.random()-.5)*3,life:.45,c})}
+function updateHUD(){document.getElementById("hpText").textContent=Math.max(0,Math.ceil(player.hp));document.getElementById("biomeText").textContent=biomeAt(player.x);document.getElementById("timeText").textContent=(Math.floor(gameTime/30)%2===0)?"DAY":"NIGHT";document.getElementById("worldText").textContent=current.name;document.getElementById("oreText").textContent=(player.inv.copper||0)+(player.inv.iron||0)+(player.inv.gold||0);renderHotbar()}
+function saveCurrent(){if(!current)return;current.lastPlayed=Date.now();const idx=worlds.findIndex(w=>w.id===current.id);if(idx>=0)worlds[idx]=current;else worlds.push(current);saveWorlds()}
+function draw(){
+ ctx.clearRect(0,0,W,H);ctx.save();ctx.translate(-Math.floor(camera.x),-Math.floor(camera.y));
+ const sx=Math.floor(camera.x/T),ex=Math.ceil((camera.x+W)/T),sy=Math.floor(camera.y/T),ey=Math.ceil((camera.y+H)/T);
+ // sky and distant layers
+ const b=biomeAt(player.x), sky=b==="Snow"?"#93cbe4":b==="Desert"?"#e9c477":b==="Jungle"?"#67bca0":"#73bce7";
+ ctx.fillStyle=sky;ctx.fillRect(camera.x,camera.y,W,H);
+ ctx.fillStyle="#ffffff22";for(let i=0;i<8;i++){let x=((i*67-gameTime*2)%500)+camera.x;ctx.fillRect(x,30+Math.sin(i)*10,24,3);ctx.fillRect(x+8,27+Math.sin(i)*10,14,3)}
+ for(let y=sy;y<=ey;y++)for(let x=sx;x<=ex;x++){const bl=tile(x,y);if(bl==="air")continue;ctx.fillStyle=blocks[bl]?.color||"#555";ctx.fillRect(x*T,y*T,T,T);if(bl==="grass"){ctx.fillStyle="#77b94b";ctx.fillRect(x*T,y*T,T,2)}if(["coal","copper","iron","gold","gem"].includes(bl)){ctx.fillStyle=bl==="gold"?"#ffe27a":bl==="copper"?"#d77d4d":bl==="iron"?"#c4d1d8":bl==="coal"?"#10151b":"#75e8ff";ctx.fillRect(x*T+2,y*T+2,2,2);ctx.fillRect(x*T+5,y*T+5,2,2)}}
+ // simple torches
+ for(let y=sy;y<=ey;y++)for(let x=sx;x<=ex;x++)if(tile(x,y)==="torch"){ctx.fillStyle="#ffd65b";ctx.fillRect(x*T+3,y*T+2,2,4)}
+ enemies.forEach(e=>{ctx.fillStyle=e.hit>0?"#fff":e.type==="Slime"?"#5ad06b":e.type==="Cave Bat"?"#5d4a91":"#a45b42";ctx.fillRect(e.x*T-4,e.y*T-6,9,7);ctx.fillStyle="#fff";ctx.fillRect(e.x*T-2,e.y*T-4,1,1);ctx.fillRect(e.x*T+2,e.y*T-4,1,1)});
+ particles.forEach(p=>{ctx.fillStyle=p.c;ctx.fillRect(p.x*T,p.y*T,2,2)});
+ // player
+ ctx.fillStyle=player.damageFlash>0?"#fff":"#f1f4f7";ctx.fillRect(player.x*T-4,player.y*T-11,8,11);ctx.fillStyle="#2b4260";ctx.fillRect(player.x*T-3,player.y*T-8,6,5);ctx.fillStyle="#7d5230";ctx.fillRect(player.x*T-4,player.y*T-12,8,3);
+ ctx.restore();
+ // pixel crosshair / selected hint
+ ctx.fillStyle="#ffffff99";ctx.fillRect(W/2-1,H/2-1,3,3);
+}
+function loop(t){const dt=Math.min(.033,(t-last)/1000||.016);last=t;if(document.getElementById("game").classList.contains("active")){update(dt);draw()}requestAnimationFrame(loop)}
+requestAnimationFrame(loop);
+
+let stick={dx:0,dy:0},jumpPressed=false;
+function stickMove(e){const r=document.getElementById("stick").getBoundingClientRect(),p=e.touches?e.touches[0]:e,nx=clamp((p.clientX-(r.left+r.width/2))/(r.width/2),-1,1),ny=clamp((p.clientY-(r.top+r.height/2))/(r.height/2),-1,1);stick.dx=Math.abs(nx)<.18?0:nx;stick.dy=ny;document.getElementById("nub").style.transform=`translate(${nx*28}px,${ny*28}px)`;e.preventDefault()}
+const stickEl=document.getElementById("stick");stickEl.addEventListener("pointerdown",e=>{stickMove(e);stickEl.setPointerCapture(e.pointerId)});stickEl.addEventListener("pointermove",e=>{if(e.buttons)stickMove(e)});["pointerup","pointercancel"].forEach(x=>stickEl.addEventListener(x,()=>{stick.dx=0;stick.dy=0;document.getElementById("nub").style.transform=""}));
+document.addEventListener("keydown",e=>{keys[e.key]=true;if(e.key>="1"&&e.key<="5"){player.selected=+e.key-1;renderHotbar()}if(e.key===" "){jumpPressed=true;e.preventDefault()}if(e.key==="e"&&player){document.getElementById("inventory").classList.toggle("show");if(document.getElementById("inventory").classList.contains("show"))renderInventory()}if(e.key==="f")mine()});
+document.addEventListener("keyup",e=>keys[e.key]=false);
+document.getElementById("jumpBtn").onclick=()=>jumpPressed=true;
+document.getElementById("attackBtn").onclick=()=>mine();
+document.getElementById("invBtn").onclick=()=>{document.getElementById("inventory").classList.add("show");renderInventory()};
+document.getElementById("closeInv").onclick=()=>document.getElementById("inventory").classList.remove("show");
+
+document.getElementById("continueBtn").onclick=continueWorld;
+document.getElementById("createBtn").onclick=openCreate;
+document.getElementById("worldsBtn").onclick=showWorlds;
+document.getElementById("backMenu").onclick=()=>show("menu");
+document.getElementById("cancelCreate").onclick=()=>document.getElementById("createModal").classList.remove("show");
+document.getElementById("makeWorld").onclick=()=>{
+ if(worlds.length>=3){toast("Maximum of 3 worlds.");return}
+ const name=document.getElementById("worldName").value.trim()||randName(),seed=document.getElementById("worldSeed").value.trim()||null;
+ const w=createWorld(name,seed,document.getElementById("worldSize").value,document.getElementById("evilType").value);
+ worlds.push(w);saveWorlds();document.getElementById("createModal").classList.remove("show");startWorld(w);
+};
+document.getElementById("respawnBtn").onclick=respawn;
+document.getElementById("quitDeath").onclick=()=>{saveCurrent();show("menu")};
+
+// Desktop click: left/right halves mine/place; mobile long-press is intentionally avoided.
+C.addEventListener("pointerdown",e=>{if(!document.getElementById("game").classList.contains("active"))return;const r=C.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*W; if(x<W*.5)mine();else place()});
+window.addEventListener("beforeunload",saveCurrent);
+</script>
+</body>
+</html>
